@@ -28,6 +28,8 @@ Aucune dépendance externe : le graphique est du SVG écrit à la main.
 - **Caisse** : le filtre « Tout » affiche une section par catégorie. Le bouton **💳 Carte** (à côté des billets) enregistre la vente comme payée par carte (SumUp) : pas de monnaie à rendre. Le moyen de paiement apparaît dans les statistiques et dans le CSV.
 - **Menus** : Articles → « + Nouveau menu ». On choisit les articles qui le composent (ex. 1 hot dog + 1 soda + 1 cookie) et un prix. En caisse, le menu est une seule ligne ; dans les statistiques, ses composants sont aussi décomptés (colonne « Dont en menu ») pour prévoir les achats. Le chiffre d'affaires reste attribué au menu.
 - **Icônes** : dans Articles, chaque article (ou menu) peut recevoir une icône de la bibliothèque (ou « Aucune »). Elle s'affiche sur le bouton de la Caisse et dans le panier. Les icônes sont dessinées dans `js/icons.js` : pour en ajouter une, ajoutez une ligne dans `ICON_LIST`. Les barres chocolatées sont des emballages génériques (couleurs approchantes, sans logo).
+- **Catégories de nourriture** : « Nourriture salée » et « Nourriture sucrée » sont séparées en Caisse. Une ancienne catégorie « Nourriture » est scindée automatiquement (les articles à icône sucrée passent en sucrée ; les autres se déplacent avec Modifier → Catégorie).
+- **Couleurs** : chaque article choisit sa couleur parmi 25 couleurs prédéfinies ; le texte du bouton passe en noir sur les couleurs claires.
 - **Billets** : les boutons 5 / 10 / 20 / 50 € ont la couleur des vrais billets.
 
 ## Sauvegardes (important)

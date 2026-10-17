@@ -4,7 +4,7 @@
 import * as storage from './storage.js';
 import { scheduleAutoBackup } from './tab-config.js';
 import { iconMarkup, CARD_ICON_SVG } from './icons.js';
-import { formatMoney, parseEurosToCents, newId, el, makeButton, showError, showToast, confirmDialog } from './utils.js';
+import { textColorFor, formatMoney, parseEurosToCents, newId, el, makeButton, showError, showToast, confirmDialog } from './utils.js';
 
 let root;
 let app;
@@ -134,7 +134,12 @@ function makeIconChip(iconKey, extraClass = '') {
 function makeItemButton(article) {
   const button = el('button', 'item-btn');
   button.type = 'button';
-  button.style.background = article.color || '#374151';
+  const buttonColor = article.color || '#374151';
+  button.style.background = buttonColor;
+  // Texte noir sur fond clair, blanc sur fond foncé (ombre seulement pour le blanc) / Black text on light, white on dark
+  const textColor = textColorFor(buttonColor);
+  button.style.color = textColor;
+  if (textColor !== '#fff') button.style.textShadow = 'none';
   if (article.icon && iconMarkup(article.icon)) button.append(makeIconChip(article.icon)); // icône choisie dans l'onglet Articles / icon chosen in Articles tab
   button.append(el('span', '', article.name), el('span', 'item-price', formatMoney(article.priceCents, app.settings.currency)));
   const inCart = cart.find((line) => line.articleId === article.id);

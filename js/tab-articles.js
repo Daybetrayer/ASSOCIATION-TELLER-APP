@@ -3,7 +3,7 @@
 
 import * as storage from './storage.js';
 import { ICON_FAMILIES, iconsOfFamily, iconMarkup } from './icons.js';
-import { formatMoney, parseEurosToCents, newId, el, makeButton, showError, showToast, confirmDialog, formDialog } from './utils.js';
+import { ARTICLE_COLORS, textColorFor, formatMoney, parseEurosToCents, newId, el, makeButton, showError, showToast, confirmDialog, formDialog } from './utils.js';
 
 let root;
 let app;
@@ -195,9 +195,35 @@ async function editArticle(article, startAsMenu = false) {
   const categorySelect = document.createElement('select');
   categories.forEach((category) => categorySelect.append(new Option(category.name, category.name)));
   categorySelect.value = article ? article.category : categories[0].name;
-  const colorInput = document.createElement('input');
-  colorInput.type = 'color';
-  colorInput.value = article && article.color ? article.color : '#2563eb';
+  // ----- Couleur de la touche : 25 couleurs prédéfinies / Button colour: 25 predefined colours -----
+  let selectedColor = article && article.color ? article.color : ARTICLE_COLORS.find((color) => color.name === 'Bleu').hex;
+  const colorButtons = []; // { hex, button }
+  const colorGrid = el('div', 'color-grid');
+  const refreshColorSelection = () => colorButtons.forEach(({ hex, button }) => {
+    const isSelected = hex.toLowerCase() === selectedColor.toLowerCase();
+    button.classList.toggle('selected', isSelected);
+    button.setAttribute('aria-pressed', String(isSelected));
+    button.textContent = isSelected ? '✓' : '';
+  });
+  const addColorButton = (name, hex) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'color-swatch';
+    button.style.background = hex;
+    button.style.color = textColorFor(hex); // couleur de la coche / tick colour
+    button.title = name;
+    button.setAttribute('aria-label', name);
+    button.onclick = () => { selectedColor = hex; refreshColorSelection(); };
+    colorButtons.push({ hex, button });
+    colorGrid.append(button);
+  };
+  ARTICLE_COLORS.forEach((color) => addColorButton(color.name, color.hex));
+  // Ancienne couleur libre hors palette : conservée tant qu'on n'en choisit pas une autre
+  // Old free colour outside the palette: kept until another one is chosen
+  if (!ARTICLE_COLORS.some((color) => color.hex.toLowerCase() === selectedColor.toLowerCase())) addColorButton('Couleur actuelle', selectedColor);
+  refreshColorSelection();
+  const colorSection = el('div', '');
+  colorSection.append(el('strong', '', 'Couleur de la touche'), colorGrid);
 
   // ----- Icône (facultative) choisie dans la bibliothèque / Optional icon picked from the library -----
   let selectedIcon = article && iconMarkup(article.icon) ? article.icon : ''; // '' = aucune / none
@@ -297,7 +323,7 @@ async function editArticle(article, startAsMenu = false) {
   menuCheckbox.onchange = syncMenuMode;
 
   const saved = await formDialog(article ? 'Modifier l\'article' : (startAsMenu ? 'Nouveau menu' : 'Nouvel article'), (body) => {
-    body.append(menuLabel, labelled('Nom', nameInput), compositionBox, labelled('Prix (€)', priceInput), labelled('Catégorie', categorySelect), labelled('Couleur', colorInput), iconSection);
+    body.append(menuLabel, labelled('Nom', nameInput), compositionBox, labelled('Prix (€)', priceInput), labelled('Catégorie', categorySelect), colorSection, iconSection);
     syncMenuMode();
   }, () => {
     if (!nameInput.value.trim()) return 'Le nom est obligatoire.';
@@ -318,7 +344,7 @@ async function editArticle(article, startAsMenu = false) {
     name: nameInput.value.trim(),
     priceCents: parseEurosToCents(priceInput.value),
     category: categorySelect.value,
-    color: colorInput.value,
+    color: selectedColor,
     active: article ? article.active : true,
     order: article ? article.order : (articles.length ? Math.max(...articles.map((item) => item.order)) + 1 : 0),
   };

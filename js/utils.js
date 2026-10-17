@@ -47,6 +47,36 @@ export function downloadFile(fileName, content, mimeType) {
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
+// ---------- Couleurs des articles / Item colours ----------
+
+// 25 couleurs prédéfinies, 5 par ligne (rouges/jaunes, violets/bleus, cyans/verts, bruns, neutres)
+// 25 predefined colours, 5 per row (reds/yellows, purples/blues, cyans/greens, browns, neutrals)
+export const ARTICLE_COLORS = [
+  { name: 'Rouge', hex: '#dc2626' }, { name: 'Bordeaux', hex: '#881337' }, { name: 'Rose', hex: '#ec4899' },
+  { name: 'Orange', hex: '#ea580c' }, { name: 'Jaune', hex: '#facc15' },
+  { name: 'Violet', hex: '#7c3aed' }, { name: 'Prune', hex: '#581c87' }, { name: 'Indigo', hex: '#4338ca' },
+  { name: 'Bleu', hex: '#2563eb' }, { name: 'Bleu marine', hex: '#1e3a8a' },
+  { name: 'Ciel', hex: '#38bdf8' }, { name: 'Turquoise', hex: '#0e7490' }, { name: 'Menthe', hex: '#34d399' },
+  { name: 'Vert', hex: '#15803d' }, { name: 'Olive', hex: '#4d7c0f' },
+  { name: 'Rouille', hex: '#9a3412' }, { name: 'Moutarde', hex: '#ca8a04' }, { name: 'Marron', hex: '#78350f' },
+  { name: 'Chocolat', hex: '#44281c' }, { name: 'Beige', hex: '#d6b88a' },
+  { name: 'Corail', hex: '#fb7185' }, { name: 'Gris clair', hex: '#cbd5e1' }, { name: 'Gris', hex: '#6b7280' },
+  { name: 'Ardoise', hex: '#334155' }, { name: 'Noir', hex: '#111827' },
+];
+
+// Couleur de texte lisible (noir ou blanc) sur un fond donné, d'après sa luminance relative
+// Readable text colour (black or white) on a given background, from its relative luminance
+export function textColorFor(hex) {
+  const match = /^#([0-9a-f]{6})$/i.exec(hex || '');
+  if (!match) return '#fff';
+  const channels = [0, 2, 4].map((start) => {
+    const value = parseInt(match[1].slice(start, start + 2), 16) / 255;
+    return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  });
+  const luminance = 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+  return luminance > 0.35 ? '#111' : '#fff';
+}
+
 // ---------- Dates ----------
 
 // Date locale AAAA-MM-JJ (pas UTC, sinon décalage le soir) / Local date, not UTC

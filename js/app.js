@@ -75,6 +75,7 @@ async function start() {
     // Ask for persistent storage to limit browser eviction
     if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
     await storage.seedIfFirstLaunch();
+    await storage.migrateFoodCategories(); // « Nourriture » -> salée + sucrée sur les anciennes données / on old data
     app.settings = await storage.loadSettings();
     applySettings();
     for (const [name, tab] of Object.entries(tabs)) tab.init(document.getElementById(`view-${name}`), app);

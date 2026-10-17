@@ -102,6 +102,14 @@ input, select, textarea {
 :root[data-size="small"] .item-btn .icon-chip { --icon-size: 36px; }
 .item-btn .icon-chip { color-scheme: light; }
 
+/* Palette de couleurs : 5 pastilles par ligne / Colour palette: 5 swatches per row */
+.color-grid { display: grid; grid-template-columns: repeat(5, 52px); gap: 8px; margin-top: 6px; }
+.color-swatch {
+  width: 52px; height: 52px; border: 3px solid rgba(0, 0, 0, 0.3); border-radius: 12px;
+  font-size: 1.6rem; font-weight: 800; padding: 0;
+}
+.color-swatch.selected { border-color: var(--text); box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px var(--text); }
+
 /* Sélecteur d'icône (formulaire d'article) / Icon picker (item form) */
 .icon-picker { display: flex; flex-direction: column; gap: 8px; border: 2px dashed var(--border); border-radius: 10px; padding: 8px; }
 .icon-family-title { margin: 4px 0 0; font-size: 0.95rem; color: var(--text-muted); }

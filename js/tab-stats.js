@@ -44,7 +44,9 @@ export async function render() {
 // ---------- Sélection et calculs / Selection and computations ----------
 const dayById = (dayId) => days.find((day) => day.id === dayId);
 const money = (cents) => formatMoney(cents, app.settings.currency);
-const categoryOf = (line) => line.category || articleCategories.get(line.articleId) || 'Inconnue';
+// Catégorie ACTUELLE de l'article (suit les réorganisations), sinon la copie gardée dans la vente (article supprimé)
+// CURRENT category of the item (follows reorganisations), otherwise the copy kept in the sale (deleted item)
+const categoryOf = (line) => articleCategories.get(line.articleId) || line.category || 'Inconnue';
 
 function selectedDays() {
   if (selection.mode === 'day') return days.filter((day) => day.id === selection.dayId);
@@ -77,7 +79,7 @@ function totalsByArticle(list) {
       for (const component of line.isMenu ? line.components : []) {
         const componentKey = component.articleId || component.name;
         const componentEntry = totals.get(componentKey) || {
-          name: component.name, category: component.category || articleCategories.get(component.articleId) || 'Inconnue',
+          name: component.name, category: categoryOf(component),
           qty: 0, qtyInMenus: 0, revenueCents: 0, isMenu: false,
         };
         componentEntry.qty += line.qty * component.qty;
@@ -455,7 +457,7 @@ function exportDetailedCsv(list) {
         rows.push([
           toLocalDateString(new Date(sale.timestamp)), formatTime(sale.timestamp), sale.registerName,
           day ? day.eventType : '', day ? day.weather : '', component.name,
-          component.category || articleCategories.get(component.articleId) || 'Inconnue', line.qty * component.qty,
+          categoryOf(component), line.qty * component.qty,
           formatDecimal(0), formatDecimal(0), sale.cancelled ? 'oui' : 'non',
           paymentOf(sale) === 'card' ? 'carte' : 'espèces', line.name,
         ]);

@@ -261,6 +261,7 @@ async function restoreFromFile(file) {
     mode = modeSelect.value;
     if (mode === 'replace' && !(await confirmDialog('Remplacer TOUTES les données actuelles par celles du fichier ?', { confirmLabel: 'Remplacer', danger: true }))) return;
     await storage.importAll(data, mode);
+    await storage.migrateFoodCategories(); // une ancienne sauvegarde peut ramener « Nourriture » / an old backup may bring back "Nourriture"
     app.settings = await storage.loadSettings();
     app.applySettings();
     showToast('Sauvegarde restaurée');

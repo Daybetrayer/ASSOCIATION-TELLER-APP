@@ -3,7 +3,7 @@
 
 // IMPORTANT : incrémenter ce numéro à chaque modification des fichiers pour forcer la mise à jour.
 // IMPORTANT: bump this number whenever files change to force an update.
-const CACHE_VERSION = 'buvette-v3';
+const CACHE_VERSION = 'buvette-v4';
 
 const FILES_TO_CACHE = [
   './',
@@ -26,7 +26,11 @@ const FILES_TO_CACHE = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_VERSION).then((cache) => cache.addAll(FILES_TO_CACHE)).then(() => self.skipWaiting())
+    // cache: 'reload' = on ignore le cache HTTP du navigateur pour ne jamais stocker d'anciens fichiers
+    // cache: 'reload' = bypass the browser HTTP cache so old files are never stored
+    caches.open(CACHE_VERSION)
+      .then((cache) => cache.addAll(FILES_TO_CACHE.map((url) => new Request(url, { cache: 'reload' }))))
+      .then(() => self.skipWaiting())
   );
 });
 

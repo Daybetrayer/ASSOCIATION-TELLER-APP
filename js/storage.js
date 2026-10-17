@@ -2,6 +2,12 @@
 // Toutes les données vivent ici, sur l'appareil. / All data lives here, on the device.
 
 import { newId, toLocalDateString } from './utils.js';
+import { ICONS } from './icons.js';
+
+// Noms des catégories de nourriture / Food category names
+const OLD_FOOD_CATEGORY = 'Nourriture';
+const SAVOURY_CATEGORY = 'Nourriture salée';
+const SWEET_CATEGORY = 'Nourriture sucrée';
 
 const DB_NAME = 'buvette';
 const DB_VERSION = 1;
@@ -74,17 +80,17 @@ export const saveSetting = (key, value) => putOne('settings', { key, value });
 export async function seedIfFirstLaunch() {
   const alreadySeeded = await getOne('settings', 'seeded');
   if (alreadySeeded) return;
-  const categories = ['Boissons', 'Nourriture'].map((name, index) => ({ id: newId(), name, order: index }));
-  const [drinks, food] = categories.map((category) => category.name);
+  const categories = ['Boissons', SAVOURY_CATEGORY, SWEET_CATEGORY].map((name, index) => ({ id: newId(), name, order: index }));
+  const [drinks, savoury, sweet] = categories.map((category) => category.name);
   // [nom, prix en centimes, catégorie, couleur, icône] / [name, price in cents, category, color, icon]
   const samples = [
     ['Eau', 100, drinks, '#2563eb', 'eau'],
     ['Soda', 150, drinks, '#dc2626', 'soda'],
     ['Café', 100, drinks, '#78350f', 'cafe'],
-    ['Bière', 250, drinks, '#b45309', 'biere'],
-    ['Hot dog', 300, food, '#c2410c', 'hotdog'],
-    ['Cake salé', 200, food, '#4d7c0f', 'cakesale'],
-    ['Cookie', 100, food, '#7c3aed', 'cookie'],
+    ['Bière', 250, drinks, '#ca8a04', 'biere'],
+    ['Hot dog', 300, savoury, '#9a3412', 'hotdog'],
+    ['Cake salé', 200, savoury, '#4d7c0f', 'cakesale'],
+    ['Cookie', 100, sweet, '#7c3aed', 'cookie'],
   ];
   for (const category of categories) await putOne('categories', category);
   for (let index = 0; index < samples.length; index++) {
@@ -210,6 +216,41 @@ export function clearAllData() {
   return writeInOneTransaction(ALL_STORES, (transaction) => {
     for (const name of ALL_STORES) transaction.objectStore(name).clear();
   });
+}
+
+// ---------- Scission « Nourriture » en salée / sucrée / Split "Nourriture" into savoury / sweet ----------
+// Remplace l'ancienne catégorie « Nourriture » (anciennes installations et anciennes sauvegardes).
+// Idempotente : ne fait rien si « Nourriture » n'existe pas ou si « Nourriture salée » existe déjà.
+// Replaces the old "Nourriture" category (old installs and old backups).
+// Idempotent: does nothing if "Nourriture" does not exist or "Nourriture salée" already exists.
+export async function migrateFoodCategories() {
+  const categories = (await getAll('categories')).sort((a, b) => a.order - b.order);
+  const oldFood = categories.find((category) => category.name === OLD_FOOD_CATEGORY);
+  if (!oldFood || categories.some((category) => category.name === SAVOURY_CATEGORY)) return false;
+
+  const articles = await getAll('articles');
+  // « Nourriture » devient « salée », la sucrée est créée juste après / "Nourriture" becomes savoury, sweet is created right after
+  const sweetCategory = { id: newId(), name: SWEET_CATEGORY, order: 0 };
+  const reordered = [];
+  for (const category of categories) {
+    reordered.push(category.id === oldFood.id ? { ...category, name: SAVOURY_CATEGORY } : category);
+    if (category.id === oldFood.id) reordered.push(sweetCategory);
+  }
+  reordered.forEach((category, index) => { category.order = index; }); // renumérote / renumber
+  // Les articles dont l'icône est de la famille « Sucré » passent en sucrée ; les autres restent en salée
+  // Items whose icon is from the "Sucré" family move to sweet; the others stay savoury
+  const movedToSweet = articles
+    .filter((article) => article.category === OLD_FOOD_CATEGORY && ICONS[article.icon] && ICONS[article.icon].family === 'Sucré')
+    .map((article) => ({ ...article, category: SWEET_CATEGORY }));
+  const renamedToSavoury = articles
+    .filter((article) => article.category === OLD_FOOD_CATEGORY && !movedToSweet.some((moved) => moved.id === article.id))
+    .map((article) => ({ ...article, category: SAVOURY_CATEGORY }));
+
+  await writeInOneTransaction(['categories', 'articles'], (transaction) => {
+    reordered.forEach((category) => transaction.objectStore('categories').put(category));
+    [...movedToSweet, ...renamedToSavoury].forEach((article) => transaction.objectStore('articles').put(article));
+  });
+  return true;
 }
 
 // ---------- Journées / Days ----------
