@@ -1,0 +1,107 @@
+/* Variables, thèmes et mise en page de base / Variables, themes and base layout */
+
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --text: #111827;
+  --text-muted: #4b5563;
+  --border: #9ca3af;
+  --primary: #1f4e79;
+  --primary-text: #ffffff;
+  --danger: #b91c1c;
+  --success: #15803d;
+  --warning: #b45309;
+  --tabbar-height: 64px;
+  /* Taille des boutons (modifiable en Configuration) / Button size (set in Settings) */
+  --btn-min: 56px;
+  --grid-min: 150px;
+}
+
+/* Thème sombre / Dark theme */
+:root[data-theme="dark"] {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --text: #f8fafc;
+  --text-muted: #cbd5e1;
+  --border: #64748b;
+  --primary: #60a5fa;
+  --primary-text: #0b1220;
+  --danger: #f87171;
+  --success: #4ade80;
+  --warning: #fbbf24;
+}
+
+/* Taille des boutons / Button sizes */
+:root[data-size="small"] { --btn-min: 48px; --grid-min: 120px; }
+:root[data-size="large"] { --btn-min: 68px; --grid-min: 190px; }
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 18px;
+  /* Empêche le pull-to-refresh et le zoom double-tap / Block pull-to-refresh and double-tap zoom */
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Zone de contenu : seule zone qui défile / Content area: the only scrolling area */
+#views {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.view {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px;
+}
+.view[hidden] { display: none; }
+
+/* Barre d'onglets / Tab bar */
+.tabbar {
+  display: flex;
+  height: var(--tabbar-height);
+  background: var(--surface);
+  border-top: 2px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tab-btn {
+  flex: 1;
+  min-height: 48px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+.tab-btn .tab-icon { font-size: 22px; }
+.tab-btn.active { color: var(--primary); box-shadow: inset 0 4px 0 var(--primary); }
+
+h1, h2, h3 { margin: 0 0 8px; }
+h2 { font-size: 1.3rem; }
+h3 { font-size: 1.1rem; }
+.muted { color: var(--text-muted); }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

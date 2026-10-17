@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!-- Assistant de comptage pour buvette / Snack-bar counting assistant -->
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <!-- user-scalable=no : évite le zoom accidentel / prevents accidental zoom -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#1f4e79">
+  <title>Buvette</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+  <!-- Bandeau d'erreur visible (erreurs de stockage, etc.) / Visible error banner -->
+  <div id="error-banner" class="error-banner" role="alert" hidden></div>
+
+  <main id="views">
+    <section id="view-caisse" class="view" data-tab="caisse"></section>
+    <section id="view-articles" class="view" data-tab="articles" hidden></section>
+    <section id="view-stats" class="view" data-tab="stats" hidden></section>
+    <section id="view-config" class="view" data-tab="config" hidden></section>
+  </main>
+
+  <!-- Navigation toujours visible / Always-visible navigation -->
+  <nav id="tabbar" class="tabbar" aria-label="Navigation principale">
+    <button class="tab-btn" data-tab="caisse"><span class="tab-icon">🧾</span>Caisse</button>
+    <button class="tab-btn" data-tab="articles"><span class="tab-icon">🍔</span>Articles</button>
+    <button class="tab-btn" data-tab="stats"><span class="tab-icon">📊</span>Statistiques</button>
+    <button class="tab-btn" data-tab="config"><span class="tab-icon">⚙️</span>Configuration</button>
+  </nav>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <dialog id="dialog" class="dialog"></dialog>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

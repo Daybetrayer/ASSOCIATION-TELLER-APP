@@ -1,0 +1,5 @@
+# Sauvegardes de données : ne jamais publier / Data backups: never publish
+buvette-sauvegarde-*.json
+buvette-export-*.json
+buvette-ventes-*.csv
+buvette-recap-*.csv
