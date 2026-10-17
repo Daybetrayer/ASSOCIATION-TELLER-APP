@@ -86,6 +86,34 @@ input, select, textarea {
 .article-info .article-name { font-weight: 700; }
 .article-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 
+/* ---------- Icônes d'articles / Article icons ---------- */
+/* Pastille blanche : l'icône reste lisible sur toutes les couleurs et en thème sombre
+   White chip: the icon stays readable on any colour and in the dark theme */
+.icon-chip {
+  display: inline-flex; flex: none;
+  width: var(--icon-size, 44px); height: var(--icon-size, 44px);
+  padding: 3px; background: #fff; border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+.icon-chip[hidden] { display: none; }
+.icon-chip svg { width: 100%; height: 100%; }
+.icon-chip.small { --icon-size: 32px; padding: 2px; border-radius: 8px; border: 1px solid var(--border); box-shadow: none; }
+:root[data-size="large"] .item-btn .icon-chip { --icon-size: 56px; }
+:root[data-size="small"] .item-btn .icon-chip { --icon-size: 36px; }
+.item-btn .icon-chip { color-scheme: light; }
+
+/* Sélecteur d'icône (formulaire d'article) / Icon picker (item form) */
+.icon-picker { display: flex; flex-direction: column; gap: 8px; border: 2px dashed var(--border); border-radius: 10px; padding: 8px; }
+.icon-family-title { margin: 4px 0 0; font-size: 0.95rem; color: var(--text-muted); }
+.icon-options { display: flex; flex-wrap: wrap; gap: 6px; }
+.icon-option {
+  width: 56px; height: 56px; padding: 4px; border: 3px solid var(--border); border-radius: 12px;
+  background: #fff; display: flex; align-items: center; justify-content: center;
+}
+.icon-option svg { width: 100%; height: 100%; }
+.icon-option.selected { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary); }
+.icon-option.none { width: auto; min-width: 88px; padding: 4px 12px; font: inherit; font-weight: 700; color: #111; }
+
 /* ---------- Onglet Statistiques / Statistics tab ---------- */
 .stats-section, .config-section { background: var(--surface); border: 2px solid var(--border); border-radius: 14px; padding: 12px; margin-bottom: 12px; }
 .stats-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
@@ -141,6 +169,26 @@ input, select, textarea {
   grid-template-columns: repeat(auto-fill, minmax(var(--grid-min), 1fr));
 }
 .quick-cash .btn { white-space: nowrap; }
+
+/* Billets en euros, aux couleurs des vrais billets / Euro banknotes, in the colours of the real notes */
+.btn-bill {
+  --bill-bg: #888; --bill-text: #111;
+  min-height: 56px; padding: 4px 6px; font-size: 1.3rem; font-weight: 800; letter-spacing: 0.5px;
+  color: var(--bill-text); background-color: var(--bill-bg);
+  border: 2px solid rgba(0, 0, 0, 0.45); border-radius: 6px;
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.4);
+  background-image:
+    radial-gradient(circle at 11% 50%, rgba(255, 255, 255, 0.3) 0 11%, transparent 12%),
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0 4px, transparent 4px 9px);
+}
+.btn-bill:disabled { opacity: 0.35; }
+.quick-cash .btn.btn-bill { min-height: 56px; padding: 4px 6px; } /* plus fort que .quick-cash .btn / overrides it */
+.bill-5 { --bill-bg: #b5bcc4; --bill-text: #111; }  /* 5 € gris / grey */
+.bill-10 { --bill-bg: #d9423d; --bill-text: #fff; } /* 10 € rouge / red */
+.bill-20 { --bill-bg: #3b82c4; --bill-text: #fff; } /* 20 € bleu / blue */
+.bill-50 { --bill-bg: #f2923a; --bill-text: #111; } /* 50 € orange */
+.btn-card { display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+.btn-card .card-icon { height: 30px; width: auto; }
 .quick-cash .btn.btn-card { flex: 1 1 100%; } /* bouton carte sur sa propre ligne / card button on its own line */
 .btn-card.active { background: var(--primary); border-color: var(--primary); color: var(--primary-text); }
 .line-components { display: block; font-weight: 400; color: var(--text-muted); font-size: 0.8rem; }
@@ -171,6 +219,7 @@ input, select, textarea {
 .cart-empty { color: var(--text-muted); text-align: center; padding: 16px 0; }
 .cart-line { display: flex; align-items: center; gap: 6px; padding: 4px 0; border-bottom: 1px solid var(--border); }
 .cart-line .line-name { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.cart-line .icon-chip { margin-right: 2px; }
 .cart-line .line-qty { min-width: 28px; text-align: center; font-weight: 700; }
 .cart-line .line-sub { min-width: 70px; text-align: right; font-weight: 600; }
 .cart-line .btn { min-height: 48px; min-width: 48px; padding: 0; font-size: 1.3rem; }

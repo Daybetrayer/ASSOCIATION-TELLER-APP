@@ -2,6 +2,7 @@
 // Items management tab: list by category, add/edit/delete, ordering, categories
 
 import * as storage from './storage.js';
+import { ICON_FAMILIES, iconsOfFamily, iconMarkup } from './icons.js';
 import { formatMoney, parseEurosToCents, newId, el, makeButton, showError, showToast, confirmDialog, formDialog } from './utils.js';
 
 let root;
@@ -138,6 +139,9 @@ function drawArticleRow(article, siblings) {
   const row = el('div', 'article-row' + (article.active ? '' : ' inactive'));
   const swatch = el('div', 'article-swatch');
   swatch.style.background = article.color || '#374151';
+  const iconChip = el('span', 'icon-chip small');
+  iconChip.innerHTML = iconMarkup(article.icon); // vide si aucune icône / empty if no icon
+  iconChip.hidden = !iconMarkup(article.icon);
   const info = el('div', 'article-info');
   info.append(el('div', 'article-name', article.name + (article.active ? '' : ' (masqué)')));
   info.append(el('div', 'muted', formatMoney(article.priceCents, app.settings.currency)));
@@ -161,7 +165,7 @@ function drawArticleRow(article, siblings) {
 
   const actions = el('div', 'article-actions');
   actions.append(up, down, edit, toggle, remove);
-  row.append(swatch, info, actions);
+  row.append(swatch, iconChip, info, actions);
   return row;
 }
 
@@ -194,6 +198,38 @@ async function editArticle(article, startAsMenu = false) {
   const colorInput = document.createElement('input');
   colorInput.type = 'color';
   colorInput.value = article && article.color ? article.color : '#2563eb';
+
+  // ----- Icône (facultative) choisie dans la bibliothèque / Optional icon picked from the library -----
+  let selectedIcon = article && iconMarkup(article.icon) ? article.icon : ''; // '' = aucune / none
+  const iconPicker = el('div', 'icon-picker');
+  const iconButtons = new Map(); // clé -> bouton / key -> button
+  const refreshIconSelection = () => iconButtons.forEach((button, key) => {
+    button.classList.toggle('selected', key === selectedIcon);
+    button.setAttribute('aria-pressed', String(key === selectedIcon));
+  });
+  const noIconButton = makeButton('Aucune', 'icon-option none');
+  noIconButton.onclick = () => { selectedIcon = ''; refreshIconSelection(); };
+  iconButtons.set('', noIconButton);
+  iconPicker.append(noIconButton);
+  for (const family of ICON_FAMILIES) {
+    iconPicker.append(el('p', 'icon-family-title', family));
+    const options = el('div', 'icon-options');
+    for (const icon of iconsOfFamily(family)) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'icon-option';
+      button.innerHTML = icon.svg; // SVG fixe de icons.js / fixed SVG from icons.js
+      button.title = icon.label;
+      button.setAttribute('aria-label', icon.label);
+      button.onclick = () => { selectedIcon = icon.key; refreshIconSelection(); };
+      iconButtons.set(icon.key, button);
+      options.append(button);
+    }
+    iconPicker.append(options);
+  }
+  const iconSection = el('div', '');
+  iconSection.append(el('strong', '', 'Icône (facultative)'), iconPicker);
+  refreshIconSelection();
 
   const labelled = (text, field) => { const label = el('label', '', text); label.append(field); return label; };
 
@@ -252,6 +288,7 @@ async function editArticle(article, startAsMenu = false) {
     if (menuCheckbox.checked) {
       if (!pendingOption) categorySelect.append(new Option(`${MENU_CATEGORY_NAME} (nouvelle catégorie)`, MENU_CATEGORY_NAME));
       if (!article) categorySelect.value = MENU_CATEGORY_NAME;
+      if (!article && !selectedIcon) { selectedIcon = 'menu'; refreshIconSelection(); } // icône proposée, modifiable / suggested, can be changed
       if (componentRows.length === 0 && componentChoices.length) addComponentRow(componentChoices[0].id);
     } else if (menuCategoryIsNew && pendingOption) {
       pendingOption.remove();
@@ -260,7 +297,7 @@ async function editArticle(article, startAsMenu = false) {
   menuCheckbox.onchange = syncMenuMode;
 
   const saved = await formDialog(article ? 'Modifier l\'article' : (startAsMenu ? 'Nouveau menu' : 'Nouvel article'), (body) => {
-    body.append(menuLabel, labelled('Nom', nameInput), compositionBox, labelled('Prix (€)', priceInput), labelled('Catégorie', categorySelect), labelled('Couleur', colorInput));
+    body.append(menuLabel, labelled('Nom', nameInput), compositionBox, labelled('Prix (€)', priceInput), labelled('Catégorie', categorySelect), labelled('Couleur', colorInput), iconSection);
     syncMenuMode();
   }, () => {
     if (!nameInput.value.trim()) return 'Le nom est obligatoire.';
@@ -285,6 +322,7 @@ async function editArticle(article, startAsMenu = false) {
     active: article ? article.active : true,
     order: article ? article.order : (articles.length ? Math.max(...articles.map((item) => item.order)) + 1 : 0),
   };
+  if (selectedIcon) updated.icon = selectedIcon; else delete updated.icon;
   if (menuCheckbox.checked) {
     // Regroupe les lignes qui choisissent le même article / Merge rows choosing the same item
     const quantities = new Map();

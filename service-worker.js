@@ -3,7 +3,7 @@
 
 // IMPORTANT : incrémenter ce numéro à chaque modification des fichiers pour forcer la mise à jour.
 // IMPORTANT: bump this number whenever files change to force an update.
-const CACHE_VERSION = 'buvette-v2';
+const CACHE_VERSION = 'buvette-v3';
 
 const FILES_TO_CACHE = [
   './',
@@ -14,6 +14,7 @@ const FILES_TO_CACHE = [
   './js/app.js',
   './js/storage.js',
   './js/utils.js',
+  './js/icons.js',
   './js/tab-caisse.js',
   './js/tab-articles.js',
   './js/tab-stats.js',

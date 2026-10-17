@@ -3,6 +3,7 @@
 
 import * as storage from './storage.js';
 import { scheduleAutoBackup } from './tab-config.js';
+import { iconMarkup, CARD_ICON_SVG } from './icons.js';
 import { formatMoney, parseEurosToCents, newId, el, makeButton, showError, showToast, confirmDialog } from './utils.js';
 
 let root;
@@ -53,14 +54,15 @@ function buildLayout() {
   const changeBox = el('div', 'change-box');
   const quickCash = el('div', 'quick-cash');
   for (const euros of QUICK_CASH_EUROS) {
-    const button = makeButton(`${euros} €`, 'btn');
+    const button = makeButton(`${euros} €`, `btn btn-bill bill-${euros}`); // billet coloré / coloured banknote
     button.onclick = () => { givenInput.value = String(euros); renderChange(); };
     quickCashButtons.push(button);
     quickCash.append(button);
   }
   // Paiement par carte bancaire (terminal SumUp) : pas de monnaie à rendre
   // Card payment (SumUp terminal): no change to give back
-  cardButton = makeButton('💳 Carte', 'btn btn-card');
+  cardButton = makeButton('', 'btn btn-card');
+  cardButton.innerHTML = `${CARD_ICON_SVG}<span>Carte</span>`; // SVG fixe venant de icons.js / fixed SVG from icons.js
   cardButton.setAttribute('aria-pressed', 'false');
   cardButton.onclick = () => { paymentMethod = paymentMethod === 'card' ? 'cash' : 'card'; applyPaymentMode(); };
   quickCash.append(cardButton);
@@ -122,10 +124,18 @@ function renderFilters() {
 }
 
 // ---------- Grille d'articles / Items grid ----------
+// Pastille blanche contenant l'icône / White chip holding the icon
+function makeIconChip(iconKey, extraClass = '') {
+  const chip = el('span', `icon-chip ${extraClass}`.trim());
+  chip.innerHTML = iconMarkup(iconKey); // SVG fixe de icons.js, jamais de saisie utilisateur / fixed SVG, never user input
+  return chip;
+}
+
 function makeItemButton(article) {
   const button = el('button', 'item-btn');
   button.type = 'button';
   button.style.background = article.color || '#374151';
+  if (article.icon && iconMarkup(article.icon)) button.append(makeIconChip(article.icon)); // icône choisie dans l'onglet Articles / icon chosen in Articles tab
   button.append(el('span', '', article.name), el('span', 'item-price', formatMoney(article.priceCents, app.settings.currency)));
   const inCart = cart.find((line) => line.articleId === article.id);
   if (inCart) button.append(el('span', 'item-badge', `× ${inCart.qty}`));
@@ -239,6 +249,9 @@ function renderCart() {
     const remove = makeButton('🗑', 'btn btn-danger');
     remove.setAttribute('aria-label', `Supprimer ${line.name}`);
     remove.onclick = () => removeLine(line);
+    // L'icône est lue sur l'article actuel (elle n'est pas copiée dans la vente) / Icon read from the current item (not copied into the sale)
+    const lineIcon = articleById.get(line.articleId)?.icon;
+    if (lineIcon && iconMarkup(lineIcon)) row.append(makeIconChip(lineIcon, 'small'));
     const nameBox = el('span', 'line-name', line.name);
     if (line.isMenu) {
       nameBox.append(el('small', 'line-components', line.components.map((component) => `${component.qty} × ${component.name}`).join(' + ')));

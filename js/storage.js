@@ -76,20 +76,20 @@ export async function seedIfFirstLaunch() {
   if (alreadySeeded) return;
   const categories = ['Boissons', 'Nourriture'].map((name, index) => ({ id: newId(), name, order: index }));
   const [drinks, food] = categories.map((category) => category.name);
-  // [nom, prix en centimes, catégorie, couleur] / [name, price in cents, category, color]
+  // [nom, prix en centimes, catégorie, couleur, icône] / [name, price in cents, category, color, icon]
   const samples = [
-    ['Eau', 100, drinks, '#2563eb'],
-    ['Soda', 150, drinks, '#dc2626'],
-    ['Café', 100, drinks, '#78350f'],
-    ['Bière', 250, drinks, '#b45309'],
-    ['Hot dog', 300, food, '#c2410c'],
-    ['Cake salé', 200, food, '#4d7c0f'],
-    ['Cookie', 100, food, '#7c3aed'],
+    ['Eau', 100, drinks, '#2563eb', 'eau'],
+    ['Soda', 150, drinks, '#dc2626', 'soda'],
+    ['Café', 100, drinks, '#78350f', 'cafe'],
+    ['Bière', 250, drinks, '#b45309', 'biere'],
+    ['Hot dog', 300, food, '#c2410c', 'hotdog'],
+    ['Cake salé', 200, food, '#4d7c0f', 'cakesale'],
+    ['Cookie', 100, food, '#7c3aed', 'cookie'],
   ];
   for (const category of categories) await putOne('categories', category);
   for (let index = 0; index < samples.length; index++) {
-    const [name, priceCents, category, color] = samples[index];
-    await putOne('articles', { id: newId(), name, priceCents, category, color, active: true, order: index });
+    const [name, priceCents, category, color, icon] = samples[index];
+    await putOne('articles', { id: newId(), name, priceCents, category, color, icon, active: true, order: index });
   }
   await saveSetting('seeded', true);
 }
