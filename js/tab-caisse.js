@@ -20,7 +20,7 @@ let today = null;        // journée en cours / current day
 let daySales = [];       // ventes de la journée / sales of the day
 
 // Éléments mis à jour souvent / Frequently updated elements
-let filtersBox, itemsGrid, cartLinesBox, totalAmount, givenInput, changeResult, validateButton, clearButton, undoButton, counter, cardButton;
+let filtersBox, itemsGrid, cartLinesBox, totalAmount, givenInput, changeResult, validateButton, clearButton, undoButton, counter, cardButton, cartBox, cartHandle;
 const quickCashButtons = [];
 
 const QUICK_CASH_EUROS = [5, 10, 20, 50];
@@ -43,13 +43,21 @@ function buildLayout() {
   itemsColumn.append(filtersBox, itemsGrid);
 
   // --- Panier / Cart ---
-  const cartBox = el('div', 'cart');
+  // Le panier a 3 zones : poignée (volet sur téléphone), corps défilant, pied épinglé (total + valider)
+  // The cart has 3 zones: handle (sheet on phones), scrolling body, pinned footer (total + validate)
+  cartBox = el('div', 'cart');
+  cartHandle = makeButton('', 'cart-handle');
+  cartHandle.setAttribute('aria-expanded', 'false');
+  cartHandle.onclick = () => setSheetOpen(!cartBox.classList.contains('open'));
+  const cartBody = el('div', 'cart-body');
   cartLinesBox = el('div', 'cart-lines');
 
   const totalRow = el('div', 'cart-total');
-  totalRow.append(el('span', 'muted', 'Total à encaisser'));
+  const totalBlock = el('div', 'total-block');
+  totalBlock.append(el('span', 'muted total-label', 'Total à encaisser'));
   totalAmount = el('span', 'total-amount', '');
-  totalRow.append(totalAmount);
+  totalBlock.append(totalAmount);
+  totalRow.append(totalBlock);
 
   const changeBox = el('div', 'change-box');
   const quickCash = el('div', 'quick-cash');
@@ -73,24 +81,48 @@ function buildLayout() {
   givenInput.placeholder = 'Donné par le client';
   givenInput.setAttribute('aria-label', 'Donné par le client');
   givenInput.oninput = renderChange;
-  changeResult = el('span', 'change-result', '');
-  changeRow.append(givenInput, changeResult);
+  changeResult = el('span', 'change-result', ''); // affiché dans le pied épinglé / shown in the pinned footer
+  changeRow.append(givenInput);
   changeBox.append(quickCash, changeRow);
 
-  const actions = el('div', 'cart-actions');
   validateButton = makeButton('Valider la vente', 'btn btn-success btn-validate');
   validateButton.onclick = validateSale;
+  const actions = el('div', 'cart-actions');
   clearButton = makeButton('Vider le panier', 'btn btn-danger');
   clearButton.onclick = clearCart;
   undoButton = makeButton('Annuler la dernière vente', 'btn');
   undoButton.onclick = cancelLastSale;
-  actions.append(validateButton, clearButton, undoButton);
+  actions.append(clearButton, undoButton);
 
   counter = el('div', 'day-counter', '');
-  cartBox.append(cartLinesBox, totalRow, changeBox, actions, counter);
+  cartBody.append(cartLinesBox, changeBox, actions, counter);
 
-  layout.append(itemsColumn, cartBox);
+  // Pied épinglé : total, monnaie à rendre, bouton Valider toujours visibles / always visible
+  const pinned = el('div', 'cart-pinned');
+  pinned.append(totalRow, changeResult, validateButton);
+  cartBox.append(cartHandle, cartBody, pinned);
+
+  // Fond sombre derrière le volet ouvert (téléphone) / Dark backdrop behind the open sheet (phone)
+  const backdrop = el('div', 'cart-backdrop');
+  backdrop.onclick = () => setSheetOpen(false);
+
+  layout.append(itemsColumn, backdrop, cartBox);
   root.append(layout);
+}
+
+// Ouvre / ferme le volet du panier (n'a d'effet visuel que sur téléphone en portrait)
+// Opens / closes the cart sheet (only visible on phones in portrait)
+function setSheetOpen(isOpen) {
+  cartBox.classList.toggle('open', isOpen);
+  root.querySelector('.caisse').classList.toggle('sheet-open', isOpen);
+  cartHandle.setAttribute('aria-expanded', String(isOpen));
+  renderCartHandle();
+}
+
+function renderCartHandle() {
+  const count = cart.reduce((sum, line) => sum + line.qty, 0);
+  const isOpen = cartBox.classList.contains('open');
+  cartHandle.textContent = `${isOpen ? '▼' : '▲'}  Panier · ${count} article${count > 1 ? 's' : ''}`;
 }
 
 // Appelé à chaque affichage de l'onglet / Called each time the tab is shown
@@ -223,6 +255,7 @@ function resetCart() {
   givenInput.value = '';
   paymentMethod = 'cash'; // retour aux espèces pour le client suivant / back to cash for the next customer
   applyPaymentMode();
+  setSheetOpen(false); // le volet se replie après la vente / the sheet folds after the sale
   renderItems();
   renderCart();
 }
@@ -256,13 +289,17 @@ function renderCart() {
     remove.onclick = () => removeLine(line);
     // L'icône est lue sur l'article actuel (elle n'est pas copiée dans la vente) / Icon read from the current item (not copied into the sale)
     const lineIcon = articleById.get(line.articleId)?.icon;
-    if (lineIcon && iconMarkup(lineIcon)) row.append(makeIconChip(lineIcon, 'small'));
+    // Titre = icône + nom (sur petit écran il prend toute la largeur, les boutons passent dessous)
+    // Title = icon + name (on small screens it takes the full width, buttons go below)
+    const titleBox = el('span', 'line-title');
+    if (lineIcon && iconMarkup(lineIcon)) titleBox.append(makeIconChip(lineIcon, 'small'));
     const nameBox = el('span', 'line-name', line.name);
     if (line.isMenu) {
       nameBox.append(el('small', 'line-components', line.components.map((component) => `${component.qty} × ${component.name}`).join(' + ')));
     }
+    titleBox.append(nameBox);
     row.append(
-      nameBox,
+      titleBox,
       minus, el('span', 'line-qty', String(line.qty)), plus,
       el('span', 'line-sub', formatMoney(line.priceCents * line.qty, app.settings.currency)),
       remove,
@@ -272,6 +309,7 @@ function renderCart() {
   totalAmount.textContent = formatMoney(cartTotalCents(), app.settings.currency);
   validateButton.disabled = cart.length === 0;
   clearButton.disabled = cart.length === 0;
+  renderCartHandle();
   renderChange();
 }
 

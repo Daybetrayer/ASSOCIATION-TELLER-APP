@@ -32,6 +32,14 @@ Aucune dépendance externe : le graphique est du SVG écrit à la main.
 - **Couleurs** : chaque article choisit sa couleur parmi 25 couleurs prédéfinies ; le texte du bouton passe en noir sur les couleurs claires.
 - **Billets** : les boutons 5 / 10 / 20 / 50 € ont la couleur des vrais billets.
 
+## Écrans et orientations
+
+L'affichage s'adapte à la taille réelle de la fenêtre (pas au modèle d'appareil) :
+- **Tablette / grand écran en paysage** : articles à gauche, panier à droite.
+- **Tablette en portrait** : articles en haut, panier en dessous.
+- **Téléphone en portrait** : articles sur 3 colonnes ; le panier est un **volet en bas** (total et « Valider » toujours visibles ; « ▲ Panier » déplie les lignes, les billets, la carte et la monnaie, puis il se replie après chaque vente).
+- **Téléphone en paysage** : la barre d'onglets passe sur le côté gauche ; le paiement est en haut du panier et « Valider » reste visible.
+
 ## Sauvegardes (important)
 
 - Les données vivent dans IndexedDB, **sur la tablette**. Désinstaller l'appli ou vider les données de Chrome les efface.

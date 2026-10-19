@@ -58,7 +58,8 @@ input, select, textarea {
   color: var(--text);
   max-width: min(90vw, 480px);
 }
-.dialog { max-height: 90vh; overflow-y: auto; }
+.dialog { width: min(94vw, 480px); max-height: 90vh; max-height: 90dvh; overflow-y: auto; }
+@media (max-width: 599px) { .dialog { padding: 14px; } }
 .checkbox-label { flex-direction: row !important; align-items: center; gap: 8px; min-height: 48px; }
 .checkbox-label input { width: 28px; height: 28px; min-height: 0; }
 .composition-box { border: 2px dashed var(--border); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 8px; }
@@ -69,7 +70,7 @@ input, select, textarea {
 .dialog-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px; flex-wrap: wrap; }
 
 /* Formulaires / Forms */
-.form-body { display: flex; flex-direction: column; gap: 10px; min-width: min(80vw, 380px); }
+.form-body { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .form-body label { display: flex; flex-direction: column; gap: 4px; font-weight: 600; }
 .form-body input[type="color"] { padding: 2px; min-width: 80px; }
 .form-error { color: var(--danger); font-weight: 700; margin: 8px 0 0; min-height: 1.2em; }
@@ -98,14 +99,12 @@ input, select, textarea {
 .icon-chip[hidden] { display: none; }
 .icon-chip svg { width: 100%; height: 100%; }
 .icon-chip.small { --icon-size: 32px; padding: 2px; border-radius: 8px; border: 1px solid var(--border); box-shadow: none; }
-:root[data-size="large"] .item-btn .icon-chip { --icon-size: 56px; }
-:root[data-size="small"] .item-btn .icon-chip { --icon-size: 36px; }
-.item-btn .icon-chip { color-scheme: light; }
+.item-btn .icon-chip { --icon-size: var(--icon-item); color-scheme: light; } /* taille définie dans base.css selon réglage et écran / set in base.css per setting and screen */
 
 /* Palette de couleurs : 5 pastilles par ligne / Colour palette: 5 swatches per row */
-.color-grid { display: grid; grid-template-columns: repeat(5, 52px); gap: 8px; margin-top: 6px; }
+.color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 6px; }
 .color-swatch {
-  width: 52px; height: 52px; border: 3px solid rgba(0, 0, 0, 0.3); border-radius: 12px;
+  width: 100%; aspect-ratio: 1; min-height: 48px; max-height: 64px; border: 3px solid rgba(0, 0, 0, 0.3); border-radius: 12px;
   font-size: 1.6rem; font-weight: 800; padding: 0;
 }
 .color-swatch.selected { border-color: var(--text); box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px var(--text); }
@@ -149,16 +148,20 @@ input, select, textarea {
 .tab-btn.needs-attention .tab-icon::after { content: "●"; color: var(--danger); font-size: 14px; position: relative; top: -10px; left: -4px; }
 
 /* ---------- Onglet Caisse / Caisse tab ---------- */
+/* Profils d'affichage / Display profiles (voir aussi base.css) :
+   - portrait large (tablette) : articles au-dessus, panier dessous
+   - paysage : articles à gauche, panier à droite (tablette, téléphone en paysage)
+   - téléphone en portrait (< 600 px) : articles plein écran + panier en volet en bas */
 .caisse {
+  position: relative;
   height: 100%;
   display: grid;
   gap: 12px;
   grid-template-columns: 1fr;
   grid-template-rows: minmax(0, 1fr) auto;
 }
-/* Paysage : articles à gauche, panier à droite / Landscape: items left, cart right */
-@media (orientation: landscape) and (min-width: 700px) {
-  .caisse { grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr); grid-template-rows: 1fr; }
+@media (orientation: landscape) and (min-width: 560px), (orientation: landscape) and (max-height: 500px) {
+  .caisse { grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); grid-template-rows: minmax(0, 1fr); }
 }
 .caisse-items { display: flex; flex-direction: column; min-height: 0; gap: 8px; }
 .category-filters { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -216,32 +219,93 @@ input, select, textarea {
   background: #fff; color: #111; text-shadow: none; border-radius: 12px; padding: 0 10px; min-height: 24px; font-size: 0.95rem;
 }
 
-/* Panier / Cart */
+/* Panier / Cart : poignée (téléphone) + corps défilant + pied épinglé / handle (phone) + scrolling body + pinned footer */
 .cart {
   background: var(--surface); border: 2px solid var(--border); border-radius: 14px;
-  display: flex; flex-direction: column; min-height: 0; padding: 10px; gap: 8px;
-  max-height: 50vh; /* portrait : laisse de la place aux articles / leaves room for items */
+  display: flex; flex-direction: column; min-height: 0;
+  max-height: 50vh; max-height: 50dvh; /* portrait : laisse de la place aux articles / leaves room for items */
 }
-@media (orientation: landscape) and (min-width: 700px) { .cart { max-height: none; } }
-.cart-lines { flex: 1; min-height: 80px; overflow-y: auto; overscroll-behavior: contain; }
+@media (orientation: landscape) and (min-width: 560px), (orientation: landscape) and (max-height: 500px) { .cart { max-height: none; } }
+.cart-handle, .cart-backdrop { display: none; }
+.cart-body {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 8px; padding: 10px 10px 0;
+}
+.cart-lines { flex: 1 1 auto; min-height: 90px; overflow-y: auto; overscroll-behavior: contain; }
 .cart-empty { color: var(--text-muted); text-align: center; padding: 16px 0; }
 .cart-line { display: flex; align-items: center; gap: 6px; padding: 4px 0; border-bottom: 1px solid var(--border); }
+.cart-line .line-title { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; }
 .cart-line .line-name { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
-.cart-line .icon-chip { margin-right: 2px; }
 .cart-line .line-qty { min-width: 28px; text-align: center; font-weight: 700; }
 .cart-line .line-sub { min-width: 70px; text-align: right; font-weight: 600; }
 .cart-line .btn { min-height: 48px; min-width: 48px; padding: 0; font-size: 1.3rem; }
 
-.cart-total { display: flex; justify-content: space-between; align-items: baseline; }
-.cart-total .total-amount { font-size: 2.6rem; font-weight: 800; color: var(--primary); }
+.cart-pinned {
+  flex: none; display: flex; flex-direction: column; gap: 6px; padding: 10px;
+  border-top: 2px solid var(--border); background: var(--surface); border-radius: 0 0 12px 12px;
+}
+.cart-total { display: block; }
+.total-block { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.total-amount { font-size: 2.6rem; font-weight: 800; color: var(--primary); line-height: 1.1; }
 .change-box { display: flex; flex-direction: column; gap: 6px; }
 .quick-cash { display: flex; gap: 6px; flex-wrap: wrap; }
 .quick-cash .btn { flex: 1; min-height: 48px; padding: 4px 8px; }
 .change-row { display: flex; gap: 8px; align-items: center; }
 .change-row input { flex: 1; min-width: 0; }
-.change-result { font-size: 1.5rem; font-weight: 800; }
+.change-result { font-size: 1.5rem; font-weight: 800; text-align: right; min-height: 1.3em; }
 .change-result.missing { color: var(--danger); }
 .change-result.ok { color: var(--success); }
 .cart-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.cart-actions .btn-validate { flex: 1 1 100%; min-height: calc(var(--btn-min) * 1.2); font-size: 1.3rem; }
-.day-counter { font-size: 0.9rem; color: var(--text-muted); text-align: center; }
+.cart-actions .btn { flex: 1 1 auto; }
+.btn-validate { width: 100%; min-height: calc(var(--btn-min) * 1.2); font-size: 1.3rem; }
+.day-counter { font-size: 0.9rem; color: var(--text-muted); text-align: center; padding-bottom: 8px; }
+
+/* Écrans compacts (téléphone portrait ou paysage bas) / Compact screens (phone portrait or short landscape) */
+@media (max-width: 599px), (max-height: 500px) {
+  .item-btn { min-height: calc(var(--btn-min) * 1.25); font-size: 0.95rem; padding: 6px; }
+  .item-btn .item-price { font-size: 0.9rem; }
+  .cart-pinned { display: grid; grid-template-columns: 1fr 1.1fr; column-gap: 10px; row-gap: 0; align-items: center; padding: 8px 10px; }
+  .cart-total { grid-column: 1; grid-row: 1; }
+  .change-result { grid-column: 1; grid-row: 2; text-align: left; font-size: 1.05rem; min-height: 1.3em; }
+  .btn-validate { grid-column: 2; grid-row: 1 / span 2; min-height: 60px; height: 100%; font-size: 1.15rem; }
+  /* Lignes du panier sur 2 rangées : titre, puis − quantité + sous-total corbeille / Cart lines on 2 rows */
+  .cart-line { flex-wrap: wrap; row-gap: 2px; }
+  .cart-line .line-title { flex: 1 1 100%; }
+  .cart-line .line-sub { margin-left: auto; }
+  .total-block { flex-direction: column; align-items: flex-start; gap: 0; }
+  .total-label { font-size: 0.8rem; }
+  .total-amount { font-size: 1.9rem; }
+}
+
+/* Téléphone en portrait : le panier devient un volet en bas, replié par défaut
+   Phone in portrait: the cart becomes a bottom sheet, folded by default */
+@media (max-width: 599px) and (orientation: portrait) {
+  .caisse { grid-template-rows: minmax(0, 1fr); }
+  .cart { position: absolute; left: 0; right: 0; bottom: 0; z-index: 20; max-height: 80vh; max-height: 80dvh; box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.3); }
+  .cart-handle {
+    display: block; width: 100%; min-height: 48px; border: 0; border-bottom: 1px solid var(--border); border-radius: 12px 12px 0 0;
+    background: transparent; color: var(--text); font: inherit; font-weight: 700;
+  }
+  .cart-body { display: none; }
+  .cart.open .cart-body { display: flex; }
+  .cart-lines { min-height: 150px; }
+  .items-scroll { padding-bottom: 130px; } /* place pour le volet replié / room for the folded sheet */
+  .caisse.sheet-open .cart-backdrop { display: block; position: absolute; inset: 0; z-index: 10; background: rgba(0, 0, 0, 0.45); }
+}
+
+/* Autres onglets sur petit écran (placé en dernier pour l'emporter) / Other tabs on small screens (last so it wins) */
+@media (max-width: 599px) {
+  .article-actions { flex: 1 1 100%; }
+  .kpi-value { font-size: 1.4rem; }
+  .kpis { grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); }
+  .stats-row label { min-width: 130px; }
+  .stats-section, .config-section, .category-section { padding: 8px; }
+}
+
+/* Téléphone en paysage (écran bas) : paiement en premier dans le panier, les lignes défilent dessous
+   Phone in landscape (short screen): payment first in the cart, lines scroll below */
+@media (orientation: landscape) and (max-height: 500px) {
+  .change-box { order: -1; }
+  .cart-lines { min-height: 100px; }
+  .cart-body { gap: 6px; }
+}
