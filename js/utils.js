@@ -138,6 +138,31 @@ export function confirmDialog(message, { confirmLabel = 'Confirmer', danger = fa
   });
 }
 
+// Menu d'actions : une liste de gros boutons empilés. actions = [{ label, run, danger? }].
+// L'action choisie est exécutée APRÈS la fermeture du menu (elle peut donc ouvrir un autre dialogue).
+// Action menu: a list of big stacked buttons. The chosen action runs AFTER the menu is closed
+// (so it can open another dialog).
+export function actionDialog(title, actions) {
+  return new Promise((resolve) => {
+    const dialog = document.getElementById('dialog');
+    dialog.innerHTML = '';
+    const list = el('div', 'action-list');
+    actions.forEach((action) => {
+      const button = makeButton(action.label, 'btn action-btn' + (action.danger ? ' btn-danger' : ''));
+      // On ferme d'abord (effet immédiat), puis on lance l'action qui peut rouvrir un dialogue
+      // Close first (immediate effect), then run the action which may reopen a dialog
+      button.onclick = () => { dialog.close(); resolve(action.run()); };
+      list.append(button);
+    });
+    const closeButton = makeButton('Fermer', 'btn action-btn');
+    closeButton.onclick = () => { dialog.close(); resolve(); };
+    list.append(closeButton);
+    dialog.append(el('h3', '', title), list);
+    dialog.oncancel = () => resolve(); // touche Retour : fermeture normale / Back key: normal close
+    dialog.showModal();
+  });
+}
+
 // Dialogue de formulaire. buildBody(container) remplit le formulaire ; validate() renvoie un message
 // d'erreur (texte) ou rien si tout est correct. Résout true (OK) ou false (annulé).
 // Form dialog. buildBody(container) fills the form; validate() returns an error message (string)

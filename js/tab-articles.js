@@ -3,7 +3,7 @@
 
 import * as storage from './storage.js';
 import { ICON_FAMILIES, iconsOfFamily, iconMarkup } from './icons.js';
-import { ARTICLE_COLORS, textColorFor, formatMoney, parseEurosToCents, newId, el, makeButton, showError, showToast, confirmDialog, formDialog } from './utils.js';
+import { actionDialog, ARTICLE_COLORS, textColorFor, formatMoney, parseEurosToCents, newId, el, makeButton, showError, showToast, confirmDialog, formDialog } from './utils.js';
 
 let root;
 let app;
@@ -41,11 +41,12 @@ function draw() {
   root.append(el('h2', '', 'Articles'));
 
   const toolbar = el('div', 'articles-toolbar');
-  const addArticleButton = makeButton('+ Nouvel article', 'btn btn-primary');
+  // Libellés courts : les 3 boutons tiennent sur une ligne, même sur téléphone / Short labels: 3 buttons fit on one line, even on phones
+  const addArticleButton = makeButton('+ Article', 'btn btn-primary');
   addArticleButton.onclick = () => editArticle(null);
-  const addMenuButton = makeButton('+ Nouveau menu', 'btn btn-primary');
+  const addMenuButton = makeButton('+ Menu', 'btn btn-primary');
   addMenuButton.onclick = () => editArticle(null, true);
-  const addCategoryButton = makeButton('+ Nouvelle catégorie', 'btn');
+  const addCategoryButton = makeButton('+ Catégorie', 'btn');
   addCategoryButton.onclick = addCategory;
   toolbar.append(addArticleButton, addMenuButton, addCategoryButton);
   root.append(toolbar);
@@ -79,7 +80,14 @@ function drawCategory(category, index) {
   rename.onclick = () => renameCategory(category);
   const remove = makeButton('Supprimer', 'btn btn-small btn-danger');
   remove.onclick = () => deleteCategory(category);
-  header.append(up, down, rename, remove);
+  // Sur téléphone, Renommer / Supprimer sont regroupés derrière le bouton ⋯ / On phones they sit behind the ⋯ button
+  const fullActions = el('span', 'full-actions');
+  fullActions.append(rename, remove);
+  const more = makeMoreButton(`Catégorie ${category.name}`, category.name, [
+    { label: 'Renommer', run: () => renameCategory(category) },
+    { label: 'Supprimer', run: () => deleteCategory(category), danger: true },
+  ]);
+  header.append(up, down, fullActions, more);
   section.append(header);
 
   const itemsOfCategory = articles.filter((article) => article.category === category.name);
@@ -163,10 +171,33 @@ function drawArticleRow(article, siblings) {
   const remove = makeButton('Supprimer', 'btn btn-small btn-danger');
   remove.onclick = () => deleteArticle(article);
 
+  // Sur téléphone, Modifier / Masquer / Supprimer sont regroupés derrière le bouton ⋯ (une seule ligne par article)
+  // On phones, Edit / Hide / Delete sit behind the ⋯ button (one line per item)
+  const fullActions = el('span', 'full-actions');
+  fullActions.append(edit, toggle, remove);
+  const more = makeMoreButton(`Actions ${article.name}`, article.name, [
+    { label: 'Modifier', run: () => editArticle(article) },
+    { label: article.active ? 'Masquer' : 'Réactiver', run: () => perform(() => storage.putOne('articles', { ...article, active: !article.active }), 'Modification impossible / Update failed') },
+    { label: 'Supprimer', run: () => deleteArticle(article), danger: true },
+  ]);
+
+  // Toucher le nom ouvre « Modifier » / Tapping the name opens "Modifier"
+  info.classList.add('tappable');
+  info.onclick = () => editArticle(article);
+
   const actions = el('div', 'article-actions');
-  actions.append(up, down, edit, toggle, remove);
+  actions.append(up, down, fullActions, more);
   row.append(swatch, iconChip, info, actions);
   return row;
+}
+
+// Bouton « ⋯ » (visible seulement sur téléphone) qui ouvre un menu d'actions
+// "⋯" button (only visible on phones) that opens an action menu
+function makeMoreButton(ariaLabel, title, actions) {
+  const button = makeButton('⋯', 'btn btn-small more-btn');
+  button.setAttribute('aria-label', ariaLabel);
+  button.onclick = () => actionDialog(title, actions).catch((error) => showError('Action impossible / Action failed', error));
+  return button;
 }
 
 // Échange la position de deux éléments / Swap the position of two entries
