@@ -180,7 +180,7 @@ export async function importAll(data, mode) {
     if (match) {
       dayIdMap.set(day.id, match.id);
       const filled = { ...match };
-      for (const field of ['eventType', 'weather', 'note']) if (!filled[field] && day[field]) filled[field] = day[field];
+      for (const field of ['eventType', 'note']) if (!filled[field] && day[field]) filled[field] = day[field];
       updatedDays.push(filled);
     } else newDays.push(day);
   }
@@ -260,7 +260,7 @@ export async function getOrCreateToday() {
   const days = await getAll('days');
   const existing = days.find((day) => day.date === today);
   if (existing) return existing;
-  const day = { id: newId(), date: today, eventType: '', weather: '', note: '' };
+  const day = { id: newId(), date: today, eventType: '', note: '' };
   await putOne('days', day);
   return day;
 }

@@ -8,7 +8,6 @@ import {
 } from './utils.js';
 
 const EVENT_TYPE_SUGGESTIONS = ['Tournoi', 'Fête', 'Vente de gâteaux', 'Assemblée', 'Repas', 'Spectacle'];
-const WEATHER_OPTIONS = ['Soleil', 'Nuageux', 'Pluie', 'Orage', 'Vent', 'Neige'];
 const MAX_LISTED_SALES = 200; // limite d'affichage de la liste / display limit for the list
 
 let root;
@@ -148,7 +147,7 @@ function drawSelector() {
   return box;
 }
 
-// Type d'événement, météo, note de la journée / Event type, weather, note of the day
+// Type d'événement et note de la journée / Event type and note of the day
 function drawDayForm(day) {
   const box = section('Cette journée');
   const row = el('div', 'stats-row');
@@ -162,11 +161,6 @@ function drawDayForm(day) {
   const knownTypes = new Set([...EVENT_TYPE_SUGGESTIONS, ...days.map((other) => other.eventType).filter(Boolean)]);
   knownTypes.forEach((type) => datalist.append(new Option(type)));
 
-  const weatherSelect = document.createElement('select');
-  weatherSelect.append(new Option('—', ''));
-  WEATHER_OPTIONS.forEach((weather) => weatherSelect.append(new Option(weather, weather)));
-  weatherSelect.value = day.weather;
-
   const noteInput = document.createElement('textarea');
   noteInput.rows = 2;
   noteInput.placeholder = 'Note libre';
@@ -175,7 +169,7 @@ function drawDayForm(day) {
   // Enregistre à chaque modification terminée / Saves whenever an edit is finished
   const save = async () => {
     try {
-      Object.assign(day, { eventType: typeInput.value.trim(), weather: weatherSelect.value, note: noteInput.value });
+      Object.assign(day, { eventType: typeInput.value.trim(), note: noteInput.value });
       await storage.putOne('days', day);
       showToast('Journée enregistrée');
     } catch (error) {
@@ -183,11 +177,10 @@ function drawDayForm(day) {
     }
   };
   typeInput.onchange = async () => { await save(); draw(); };
-  weatherSelect.onchange = save;
   noteInput.onchange = save;
 
   const labelled = (text, field) => { const label = el('label', '', text); label.append(field); return label; };
-  row.append(labelled('Type d\'événement', typeInput), labelled('Météo', weatherSelect));
+  row.append(labelled('Type d\'événement', typeInput));
   const noteRow = el('div', 'stats-row');
   noteRow.append(labelled('Note', noteInput));
   box.append(row, datalist, noteRow);
@@ -372,7 +365,6 @@ function drawComparison() {
   box.append(buildTable([
     { label: 'Date', value: (row) => row.day.date },
     { label: 'Type', value: (row) => row.day.eventType || '—' },
-    { label: 'Météo', value: (row) => row.day.weather || '—' },
     { label: 'CA', num: true, value: (row) => money(row.revenue) },
     { label: 'Ventes', num: true, value: (row) => String(row.count) },
     { label: 'Panier moyen', num: true, value: (row) => money(row.average) },
@@ -441,13 +433,13 @@ function exportSuffix() {
 // Une ligne par article vendu, y compris les ventes annulées (colonne dédiée)
 // One row per sold item, including cancelled sales (dedicated column)
 function exportDetailedCsv(list) {
-  const rows = [['Date', 'Heure', 'Caisse', 'Événement', 'Météo', 'Article', 'Catégorie', 'Quantité', 'Prix unitaire', 'Total ligne', 'Vente annulée', 'Paiement', 'Menu parent']];
+  const rows = [['Date', 'Heure', 'Caisse', 'Événement', 'Article', 'Catégorie', 'Quantité', 'Prix unitaire', 'Total ligne', 'Vente annulée', 'Paiement', 'Menu parent']];
   for (const sale of [...list].sort((a, b) => a.timestamp - b.timestamp)) {
     const day = dayById(sale.dayId);
     for (const line of sale.lines) {
       rows.push([
         toLocalDateString(new Date(sale.timestamp)), formatTime(sale.timestamp), sale.registerName,
-        day ? day.eventType : '', day ? day.weather : '', line.name, categoryOf(line), line.qty,
+        day ? day.eventType : '', line.name, categoryOf(line), line.qty,
         formatDecimal(line.priceCents), formatDecimal(line.priceCents * line.qty), sale.cancelled ? 'oui' : 'non',
         paymentOf(sale) === 'card' ? 'carte' : 'espèces', '',
       ]);
@@ -456,7 +448,7 @@ function exportDetailedCsv(list) {
       for (const component of line.isMenu ? line.components : []) {
         rows.push([
           toLocalDateString(new Date(sale.timestamp)), formatTime(sale.timestamp), sale.registerName,
-          day ? day.eventType : '', day ? day.weather : '', component.name,
+          day ? day.eventType : '', component.name,
           categoryOf(component), line.qty * component.qty,
           formatDecimal(0), formatDecimal(0), sale.cancelled ? 'oui' : 'non',
           paymentOf(sale) === 'card' ? 'carte' : 'espèces', line.name,

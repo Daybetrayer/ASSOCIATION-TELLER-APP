@@ -6,14 +6,14 @@
 import * as storage from './storage.js';
 import { newId, toLocalDateString } from './utils.js';
 
-// [décalage en jours, type d'événement, météo, affluence] / [days ago, event type, weather, busyness]
+// [décalage en jours, type d'événement, affluence] / [days ago, event type, busyness]
 const TEST_DAYS = [
-  [7, 'Tournoi', 'Soleil', 60],
-  [14, 'Fête', 'Nuageux', 80],
-  [21, 'Vente de gâteaux', 'Pluie', 25],
-  [28, 'Tournoi', 'Pluie', 40],
-  [35, 'Fête', 'Soleil', 95],
-  [42, 'Tournoi', 'Nuageux', 50],
+  [7, 'Tournoi', 60],
+  [14, 'Fête', 80],
+  [21, 'Vente de gâteaux', 25],
+  [28, 'Tournoi', 40],
+  [35, 'Fête', 95],
+  [42, 'Tournoi', 50],
 ];
 
 // Générateur pseudo-aléatoire fixe : les résultats sont identiques à chaque chargement
@@ -34,10 +34,10 @@ export async function loadTestData() {
   const days = [];
   const sales = [];
 
-  for (const [daysAgo, eventType, weather, busyness] of TEST_DAYS) {
+  for (const [daysAgo, eventType, busyness] of TEST_DAYS) {
     const date = new Date();
     date.setDate(date.getDate() - daysAgo);
-    const day = { id: newId(), date: toLocalDateString(date), eventType, weather, note: 'Données de test', isTestData: true };
+    const day = { id: newId(), date: toLocalDateString(date), eventType, note: 'Données de test', isTestData: true };
     days.push(day);
     for (let index = 0; index < busyness; index++) {
       // Heures entre 9 h et 17 h, plus de monde vers 12 h et 15 h / Hours 9–17, busier around 12 and 15
