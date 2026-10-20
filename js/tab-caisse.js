@@ -153,6 +153,9 @@ function renderFilters() {
     chip.onclick = () => { selectedCategory = name; renderFilters(); renderItems(); };
     filtersBox.append(chip);
   }
+  // Garde le filtre choisi visible dans la ligne défilante / Keep the chosen filter visible in the scrolling line
+  const activeChip = filtersBox.querySelector('.chip.active');
+  if (activeChip) activeChip.scrollIntoView({ inline: 'nearest', block: 'nearest' });
 }
 
 // ---------- Grille d'articles / Items grid ----------

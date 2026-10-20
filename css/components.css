@@ -157,15 +157,30 @@ input, select, textarea {
   height: 100%;
   display: grid;
   gap: 12px;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr); /* minmax(0, ..) : la ligne de filtres défilante ne doit pas élargir la colonne / the scrolling filter line must not widen the column */
   grid-template-rows: minmax(0, 1fr) auto;
 }
 @media (orientation: landscape) and (min-width: 560px), (orientation: landscape) and (max-height: 500px) {
   .caisse { grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); grid-template-rows: minmax(0, 1fr); }
 }
-.caisse-items { display: flex; flex-direction: column; min-height: 0; gap: 8px; }
-.category-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.caisse-items { display: flex; flex-direction: column; min-height: 0; min-width: 0; gap: 8px; }
+/* Filtres de catégories : UNE seule ligne qu'on fait glisser (gagne de la place à l'écran).
+   Un léger dégradé sur les bords indique qu'il y a d'autres filtres (technique CSS des « ombres de défilement »).
+   Category filters: ONE single line you can swipe (saves screen space).
+   A soft shade on the edges shows that more filters are hidden (CSS "scroll shadows" technique). */
+.category-filters {
+  display: flex; gap: 8px; flex: none; min-width: 0;
+  flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain;
+  scrollbar-width: none; /* Firefox */
+  background:
+    linear-gradient(to right, var(--bg) 30%, transparent) left center / 28px 100% no-repeat local,
+    linear-gradient(to left, var(--bg) 30%, transparent) right center / 28px 100% no-repeat local,
+    linear-gradient(to right, rgba(0, 0, 0, 0.28), transparent) left center / 14px 100% no-repeat scroll,
+    linear-gradient(to left, rgba(0, 0, 0, 0.28), transparent) right center / 14px 100% no-repeat scroll;
+}
+.category-filters::-webkit-scrollbar { display: none; }
 .chip {
+  flex: none; white-space: nowrap;
   min-height: 48px; padding: 6px 18px; border-radius: 24px;
   border: 2px solid var(--border); background: var(--surface); color: var(--text);
   font: inherit; font-weight: 600;
@@ -329,4 +344,10 @@ input, select, textarea {
   .category-header h3 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .articles-toolbar { flex-wrap: nowrap; gap: 6px; }
   .articles-toolbar .btn { flex: 1; padding: 8px 4px; }
+}
+
+/* Filtres un peu plus compacts sur écrans compacts (la hauteur tactile reste >= 48 px) / Slightly tighter filters on compact screens (touch height stays >= 48 px) */
+@media (max-width: 599px), (max-height: 500px) {
+  .chip { padding: 6px 14px; font-size: 0.95rem; }
+  .caisse-items { gap: 6px; }
 }
